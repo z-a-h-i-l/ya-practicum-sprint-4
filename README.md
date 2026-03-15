@@ -1,7 +1,9 @@
 # СПЛИТ 4
 
 
-# Результат заданий 1-6 
+# Результат заданий 1-6
+
+## Схемы
 
 В папке `task-1` указаны схемы в `.drawio` и `.png` по шагам.
 
@@ -17,6 +19,40 @@
 Файлы .drawio  
 [Схема sprint-4-task-1-3.drawio](./task-1/sprint-4-task-1-3.drawio)  
 [Схема sprint-4-task-6.drawio](./task-6/task-6.drawio)
+
+
+## Запуск кластера
+
+1. Выполнить команды для запуска `docker compose`
+```bash
+cd sharding-repl-cache
+docker compose up -d
+```
+2. Заполнить базу тестовыми данными
+```bash
+docker exec -it mongos_router mongosh --port 27020 --eval "
+  for (var i = 0; i < 1000; i++) {
+    db.getSiblingDB('somedb').helloDoc.insertOne({ age: i, name: 'ly' + i });
+  }
+  print('Вставлено 1000 документов');
+"
+```
+3. Проверить количество документов
+```bash
+docker exec -it mongos_router mongosh --port 27020 --eval "
+  print('Количество документов: ' + db.getSiblingDB('somedb').helloDoc.countDocuments());
+"
+```
+
+4. Проверить работоспособность приложения
+    1. Открыть страницу `http://localhost:8080/` и проверить работоспособность приложения  
+    2. Документация доступна по адресу `http://localhost:8080/docs`
+    3. Открыть `http://localhost:8080/helloDoc/users`. Первое обращение к странице займет время, последующие будут запрошены из кеша.
+
+5. Очистить кластер
+```bash
+docker compose down -v
+```
 
 # Результат заданий 7-10
 
